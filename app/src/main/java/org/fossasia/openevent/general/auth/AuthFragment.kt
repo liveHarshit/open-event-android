@@ -8,10 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.navArgs
-import kotlinx.android.synthetic.main.fragment_auth.view.getStartedButton
-import kotlinx.android.synthetic.main.fragment_auth.view.email
-import kotlinx.android.synthetic.main.fragment_auth.view.rootLayout
+import kotlinx.android.synthetic.main.fragment_auth.view.*
 import org.fossasia.openevent.general.BuildConfig
 import org.fossasia.openevent.general.PLAY_STORE_BUILD_FLAVOR
 import org.fossasia.openevent.general.R
@@ -98,9 +97,10 @@ class AuthFragment : Fragment() {
     }
 
     private fun redirectToSignUp() {
+        val extras = FragmentNavigatorExtras(rootView.email to getString(R.string.transitionName))
         Navigation.findNavController(rootView)
             .navigate(AuthFragmentDirections
-                .actionAuthToSignUp(rootView.email.text.toString(), safeArgs.redirectedFrom)
+                .actionAuthToSignUp(rootView.email.text.toString(), safeArgs.redirectedFrom), extras
             )
     }
 

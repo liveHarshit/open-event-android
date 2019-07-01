@@ -3,10 +3,14 @@ package org.fossasia.openevent.general.search.location
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
+import androidx.core.app.SharedElementCallback
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
@@ -27,7 +31,7 @@ import kotlinx.android.synthetic.main.fragment_search_location.view.popularLocat
 import kotlinx.android.synthetic.main.fragment_search_location.view.currentLocation
 import kotlinx.android.synthetic.main.fragment_search_location.view.popularLocationsRv
 import kotlinx.android.synthetic.main.fragment_search_location.view.locationProgressBar
-import kotlinx.android.synthetic.main.fragment_search_location.view.locationSearchView
+import kotlinx.android.synthetic.main.fragment_search_location.view.locationEditText
 import kotlinx.android.synthetic.main.fragment_search_location.view.rvAutoPlaces
 import kotlinx.android.synthetic.main.fragment_search_location.view.toolbar
 import kotlinx.android.synthetic.main.fragment_search_location.view.shimmerSearchEventTypes
@@ -60,7 +64,7 @@ class SearchLocationFragment : Fragment() {
 
         setupPopularLocations()
 
-        setUpLocationSearchView()
+        setUpLocationEditText()
 
         setupRecyclerPlaceSuggestions()
 
@@ -88,7 +92,7 @@ class SearchLocationFragment : Fragment() {
         searchLocationViewModel.placeSuggestions.observe(viewLifecycleOwner, Observer {
             placeSuggestionsAdapter.submitList(it)
             // To handle the case : search result comes after query is empty
-            toggleSuggestionVisibility(it.isNotEmpty() && rootView.locationSearchView.query.isNotEmpty())
+            toggleSuggestionVisibility(it.isNotEmpty() && rootView.locationEditText.text.isNotEmpty())
         })
 
         rootView.toolbar.setNavigationOnClickListener {
@@ -111,12 +115,12 @@ class SearchLocationFragment : Fragment() {
 
         rootView.toolbarTitle.setOnClickListener {
             rootView.scrollView.scrollTo(0, 0)
-            rootView.locationSearchView.isFocusable = true
+            rootView.locationEditText.isFocusable = true
             showSoftKeyboard(context, rootView)
         }
 
         rootView.scrollView.setOnScrollChangeListener { _: NestedScrollView?, _: Int, scrollY: Int, _: Int, _: Int ->
-            if (scrollY > rootView.locationSearchView.y) {
+            if (scrollY > rootView.locationEditText.y) {
                 rootView.toolbarLayout.elevation = resources.getDimension(R.dimen.custom_toolbar_elevation)
                 rootView.toolbarTitle.text = getString(R.string.location_hint)
             } else {
@@ -128,7 +132,7 @@ class SearchLocationFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        showSoftKeyboard(context, rootView.locationSearchView)
+        showSoftKeyboard(context, rootView.locationEditText)
     }
 
     private fun checkLocationPermission() {
@@ -182,19 +186,27 @@ class SearchLocationFragment : Fragment() {
         redirectToMain()
     }
 
-    private fun setUpLocationSearchView() {
+    private fun setUpLocationEditText() {
         val subject = PublishSubject.create<String>()
-        rootView.locationSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean {
-                savePlaceAndRedirectToMain(query)
-                return false
+        rootView.locationEditText.addTextChangedListener(object : TextWatcher{
+            override fun afterTextChanged(s: Editable?) {
+                handleDisplayPlaceSuggestions(s.toString(), subject)
             }
 
-            override fun onQueryTextChange(newText: String): Boolean {
-                handleDisplayPlaceSuggestions(newText, subject)
-                return false
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                //To change body of created functions use File | Settings | File Templates.
             }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                //To change body of created functions use File | Settings | File Templates.
+            }
+
         })
+        rootView.locationEditText.setOnKeyListener { _, keyCode, _ ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER)
+                savePlaceAndRedirectToMain(rootView.locationEditText.text.toString())
+            true
+        }
         searchLocationViewModel.handlePlaceSuggestions(subject)
     }
 

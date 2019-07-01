@@ -3,6 +3,7 @@ package org.fossasia.openevent.general
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -80,12 +81,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        Toast.makeText(this, "Called1", Toast.LENGTH_SHORT).show()
         val hostFragment = supportFragmentManager.findFragmentById(R.id.frameContainer)
         if (hostFragment is NavHostFragment) {
             val currentFragment = hostFragment.childFragmentManager.fragments.first()
             if (currentFragment is ComplexBackPressFragment) {
+                Toast.makeText(this, "Called2", Toast.LENGTH_SHORT).show()
                 currentFragment.handleBackPress()
                 if (currentFragment is AuthFragment)
+                    Toast.makeText(this, "Called3", Toast.LENGTH_SHORT).show()
                     mainFragmentCoordinatorLayout.snackbar(R.string.sign_in_canceled)
                 return
             }
@@ -93,7 +97,10 @@ class MainActivity : AppCompatActivity() {
         when (currentFragmentId) {
             R.id.orderCompletedFragment -> navController.popBackStack(R.id.eventDetailsFragment, false)
             R.id.welcomeFragment -> finish()
-            else -> super.onBackPressed()
+            else -> {
+                Toast.makeText(this, "Called4", Toast.LENGTH_SHORT).show()
+                super.onBackPressed()
+            }
         }
     }
 
